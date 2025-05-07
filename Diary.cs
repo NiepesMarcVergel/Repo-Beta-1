@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 
 public class Diary
 {
@@ -10,22 +11,22 @@ public class Diary
         using (StreamWriter writer = new StreamWriter(filePath, true))
         {
             writer.WriteLine($"Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-            writer.WriteLine(text);
-            writer.WriteLine("---");
+            writer.WriteLine(text.Trim());
+            writer.WriteLine(new string('-', 30));
         }
-        Console.WriteLine("Entry saved.");
+        Console.WriteLine("Entry have been saved successfully.\n");
     }
 
     public void ViewAllEntries()
     {
         if (!File.Exists(filePath))
         {
-            Console.WriteLine("No diary entries found.");
+            Console.WriteLine("No diary entries found.\n");
             return;
         }
 
         string content = File.ReadAllText(filePath);
-        Console.WriteLine("\nAll Entries:\n");
+        Console.WriteLine("\n=== All Diary Entries ===\n");
         Console.WriteLine(content);
     }
 
@@ -33,24 +34,29 @@ public class Diary
     {
         if (!File.Exists(filePath))
         {
-            Console.WriteLine("No diary entries found.");
+            Console.WriteLine("No diary entries found.\n");
             return;
         }
 
         string[] lines = File.ReadAllLines(filePath);
-        bool found = false;
+        bool matchFound = false;
+        bool show = false;
+
+        Console.WriteLine($"\n===> Entries on {date} <===\n");
+
         foreach (string line in lines)
         {
             if (line.StartsWith("Date: ") && line.Contains(date))
             {
-                found = true;
+                matchFound = true;
+                show = true;
                 Console.WriteLine(line);
             }
-            else if (found)
+            else if (show)
             {
-                if (line == "---")
+                if (line.StartsWith("-"))
                 {
-                    found = false;
+                    show = false;
                     Console.WriteLine();
                 }
                 else
@@ -58,6 +64,11 @@ public class Diary
                     Console.WriteLine(line);
                 }
             }
+        }
+
+        if (!matchFound)
+        {
+            Console.WriteLine("No entries found for that date.\n");
         }
     }
 }

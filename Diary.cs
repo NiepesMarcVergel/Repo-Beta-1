@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text;
 
 public class Diary
 {
@@ -8,67 +7,98 @@ public class Diary
 
     public void WriteEntry(string text)
     {
-        using (StreamWriter writer = new StreamWriter(filePath, true))
+        try
         {
-            writer.WriteLine($"Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-            writer.WriteLine(text.Trim());
-            writer.WriteLine(new string('-', 30));
+            using (StreamWriter writer = new StreamWriter(filePath, true))
+            {
+                writer.WriteLine($"Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                writer.WriteLine(text);
+                writer.WriteLine("---");
+            }
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("\n[Entry saved successfully.]\n");
+            Console.ResetColor();
         }
-        Console.WriteLine("Entry have been saved successfully.\n");
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"[Error saving entry: {ex.Message}]\n");
+            Console.ResetColor();
+        }
     }
 
     public void ViewAllEntries()
     {
-        if (!File.Exists(filePath))
-        {
-            Console.WriteLine("No diary entries found.\n");
-            return;
-        }
+        Console.Clear();
+        Console.WriteLine("===> VIEW ALL ENTRIES <===\n");
 
-        string content = File.ReadAllText(filePath);
-        Console.WriteLine("\n=== All Diary Entries ===\n");
-        Console.WriteLine(content);
+        try
+        {
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine("[No diary entries found.]\n");
+                return;
+            }
+
+            string content = File.ReadAllText(filePath);
+            Console.WriteLine(content);
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"[Error reading entries: {ex.Message}]\n");
+            Console.ResetColor();
+        }
     }
 
     public void SearchByDate(string date)
     {
-        if (!File.Exists(filePath))
+        Console.Clear();
+        Console.WriteLine($"===> SEARCH RESULTS FOR {date} <===\n");
+
+        try
         {
-            Console.WriteLine("No diary entries found.\n");
-            return;
-        }
-
-        string[] lines = File.ReadAllLines(filePath);
-        bool matchFound = false;
-        bool show = false;
-
-        Console.WriteLine($"\n===> Entries on {date} <===\n");
-
-        foreach (string line in lines)
-        {
-            if (line.StartsWith("Date: ") && line.Contains(date))
+            if (!File.Exists(filePath))
             {
-                matchFound = true;
-                show = true;
-                Console.WriteLine(line);
+                Console.WriteLine("[No diary entries found.]\n");
+                return;
             }
-            else if (show)
+
+            string[] lines = File.ReadAllLines(filePath);
+            bool found = false;
+            foreach (string line in lines)
             {
-                if (line.StartsWith("-"))
+                if (line.StartsWith("Date: ") && line.Contains(date))
                 {
-                    show = false;
-                    Console.WriteLine();
-                }
-                else
-                {
+                    found = true;
+                    Console.ForegroundColor = ConsoleColor.Cyan;
                     Console.WriteLine(line);
+                    Console.ResetColor();
+                }
+                else if (found)
+                {
+                    if (line == "---")
+                    {
+                        found = false;
+                        Console.WriteLine();
+                    }
+                    else
+                    {
+                        Console.WriteLine(line);
+                    }
                 }
             }
-        }
 
-        if (!matchFound)
+            if (!found)
+            {
+                Console.WriteLine("[No entries found for the given date.]\n");
+            }
+        }
+        catch (Exception ex)
         {
-            Console.WriteLine("No entries found for that date.\n");
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"[Error searching entries: {ex.Message}]\n");
+            Console.ResetColor();
         }
     }
 }
